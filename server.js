@@ -1,6 +1,8 @@
 const express = require("express")
 const pool = require("./db/db")
 
+const locationRoutes = require("./routes/locationRoutes")
+
 const app = express()
 
 const PORT = 3000;
@@ -25,7 +27,7 @@ app.get("/",(req,res)=>{
     });
 });
 
-
+app.use("/api",locationRoutes)
 
 // GET ALL LOCATIONS
 app.get("/locations",async(req,res)=>{
