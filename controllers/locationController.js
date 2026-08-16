@@ -83,7 +83,7 @@ const createLocation = async(req,res)=>{
 
 
     }catch(error){
-        console.error(error)
+        console.error(error);
         return res.status(500).json({
             success:false,
             message:"Failed to create locations"
@@ -142,6 +142,44 @@ const updateLocation = async(req,res)=>{
 };
 
 
+// delete Location 
+
+const deleteLocation = async(req,res)=>{
+    try{
+
+        const id = parseInt(req.params.id);
+
+        if(Number.isNaN(id)){
+            return res.status(404).json({
+                success:false,
+                message:"Invalid location id" 
+            })
+        };
+
+        const result = await pool.query(`
+            delete from location where id = $1 returning *`,
+            [id]
+        );
+
+        if(result.rows.length === 0){
+            return res.status(404).json({
+                success:false,
+                message:"Location not found"
+            });
+        };
+
+        res.status(202).send()
+
+    }catch(error){
+        console.log(error);
+        res.status(500).json({
+            success:false,
+            message:"failed to delete location "
+        })
+    }
+}
 
 
-module.exports = {getLocations,getLocationById,createLocation,updateLocation};
+
+
+module.exports = {getLocations,getLocationById,createLocation,updateLocation,deleteLocation};
