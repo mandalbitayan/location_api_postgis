@@ -1,5 +1,6 @@
-const express = require("express")
-const pool = require("./db/db")
+const express = require("express");
+const cors = require("cors");
+const pool = require("./db/db");
 
 const locationRoutes = require("./routes/locationRoutes")
 
@@ -7,7 +8,10 @@ const app = express();
 
 const PORT = 3000;
 
+app.use(cors())
+
 app.use(express.json());
+
 
 // test route for database connection 
 
