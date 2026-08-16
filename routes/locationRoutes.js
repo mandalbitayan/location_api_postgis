@@ -12,11 +12,11 @@ router.get("/locations",getLocations);
 
 router.get("locations/:id",getLocationById);
 
-route.post("/createLocation",createLocation)
+router.post("/createLocation",createLocation)
 
-route.put("/location/:id",updateLocation)
+router.put("/location/:id",updateLocation)
 
-route.delete("/location/:id",deleteLocation)
+router.delete("/location/:id",deleteLocation)
 
 
 
