@@ -3,7 +3,7 @@ const pool = require("./db/db")
 
 const locationRoutes = require("./routes/locationRoutes")
 
-const app = express()
+const app = express();
 
 const PORT = 3000;
 
@@ -14,6 +14,7 @@ app.use(express.json());
 app.get("/db-test",async(req,res)=>{
   const result = await pool.query("SELECT NOW()")
 
+  console.log("database connected")
   res.json({
     message:"Database connected",
     time:result.rows[0].now
@@ -27,9 +28,10 @@ app.get("/",(req,res)=>{
     });
 });
 
-app.use("/api",locationRoutes)
+// get all locations
+app.use("/api",locationRoutes);
 
 
 app.listen(PORT,()=>{
-  console.log(`server is running on podt ${PORT}`)
-})
+  console.log(`server is running on port ${PORT}`)
+});

@@ -1,23 +1,68 @@
 const pool = require("../db/db");
 const validateLocation = require("../validators/locationValidator");
 
-// get get locations
-const getLocations = async(req,res)=>{
-    try{
+// // get get locations
+// const getLocations = async(req,res)=>{
+//     try{
 
-        const result = await pool.query(
-            `select * from locations order by id`
-        )
-        res.json(result.rows)
+//         const result = await pool.query(
+//             `select * from locations order by id`
+//         )
+//         res.json(result.rows)
 
-    }catch(error){
+//     }catch(error){
+//         console.error(error);
+//         return res.status(500).json({
+//             message:"Failed to fetch location"
+//         });
+//     }
+// };
+
+
+// get all location features as geojson (new)
+
+const getLocations= async (req, res) => {
+
+    try {
+
+        const result = await pool.query(`
+            SELECT
+                id,
+                name,
+                ST_AsGeoJSON(geom) AS geometry
+            FROM locations
+            ORDER BY id
+        `);
+
+        const features = result.rows.map((row) => {
+
+            return {
+                type: "Feature",
+
+                properties: {
+                    id: row.id,
+                    name: row.name
+                },
+
+                geometry: JSON.parse(row.geometry)
+            };
+
+        });
+
+        res.json({
+            type: "FeatureCollection",
+            features: features
+        });
+
+    } catch (error) {
+
         console.error(error);
-        return res.status(500).json({
-            message:"Failed to fetch location"
+
+        res.status(500).json({
+            message: "Failed to fetch locations"
         });
     }
 };
-
 
 // get location by id
 const getLocationById = async(req,res)=>{

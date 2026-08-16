@@ -10,14 +10,16 @@ const {getLocations,getLocationById,createLocation,updateLocation,deleteLocation
 // get all locations route
 router.get("/locations",getLocations);
 
+// get location as geojson
+// router.get("/locationsjson",getLocationsGeoJSON);
+
 router.get("locations/:id",getLocationById);
 
-router.post("/createLocation",createLocation)
+router.post("/createLocation",createLocation);
 
-router.put("/location/:id",updateLocation)
+router.put("/location/:id",updateLocation);
 
-router.delete("/location/:id",deleteLocation)
-
+router.delete("/location/:id",deleteLocation);
 
 
 module.exports = router;
