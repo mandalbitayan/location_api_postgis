@@ -1,5 +1,5 @@
 const pool = require("../db/db");
-const validateLocation = require("../validators/locationValidator");
+const {validateLocation,validateNearbyQuery} = require("../validators/locationValidator");
 
 // // get get locations
 // const getLocations = async(req,res)=>{
@@ -63,6 +63,75 @@ const getLocations= async (req, res) => {
         });
     }
 };
+
+
+// get nearby location
+
+const getNearByLocation = async(req,res)=>{
+    try{
+
+        const validationError = validateNearbyQuery(req.query);
+
+        if(validationError){
+            return res.status(400).json({
+                message:validationError
+            });
+        }
+
+        const lat = Number(req.query.lat);
+        const lng = Number(req.query.lng);
+        const radius = Number(req.query.radius);
+
+        const result = await pool.query(
+            `select
+            id,
+            name,
+            st_asgeojson(geom) as geometry
+            from locations
+            where st_dwithin(
+            geom:geography,
+            st_setsrid(
+            st_makepoint($1,$2),
+            4326
+            )::geography,
+            $3
+            )order by id
+            `,
+            [lng,lat,radiun]
+        );
+
+        const features = result.rows.map((row)=>{
+
+            return{
+                type:"Feature",
+
+                properties:{
+                    id:row.id,
+                    name:row.name
+                },
+
+                geometry : JSON.parse(row.geometry)
+            };
+        });
+
+        res.json({
+            type:"FeatureCollection",
+            feature:features
+        });
+
+
+    }catch(error){
+        console.log(error)
+
+        return res.status(500).json({
+            success:false,
+            message:error.message
+        })
+    }
+}
+
+
+
 
 // get location by id
 const getLocationById = async(req,res)=>{

@@ -29,6 +29,8 @@
         map,
       );
 
+      // fetch all locations 
+
       fetch("http://localhost:3000/api/locations")
         .then((response) => response.json())
         .then((data) => {
@@ -37,6 +39,18 @@
         .catch((error) => {
           console.error(error);
         });
+
+      // fetch nearby search
+
+      fetch("https://localhost:3000/api/locations/nearby?lat=17.385&lng=78.4867&radius=5000")
+      .then((response) => response.json())
+      .then((data)=>{
+        L.geoJSON(data).addTo(map)
+      })
+      .catch((error)=>{
+        console.error(error)
+      });
+      
     </script>
   </body>
 </html>

@@ -29,6 +29,41 @@ function validateLocation(data) {
     }
 
     return null;
-}
+};
 
-module.exports = validateLocation;
+
+// validation nearby query function 
+
+function validateNearbyQuery(data) {
+
+    const lat = Number(data.lat);
+    const lng = Number(data.lng);
+    const radius = Number(data.radius);
+
+
+    if (
+        Number.isNaN(lat) ||
+        Number.isNaN(lng) ||
+        Number.isNaN(radius)
+    ) {
+        return "lat, lng and radius must be valid numbers";
+    }
+
+
+    if (lat < -90 || lat > 90) {
+        return "Latitude must be between -90 and 90";
+    }
+
+
+    if (lng < -180 || lng > 180) {
+        return "Longitude must be between -180 and 180";
+    }
+
+
+    if (radius <= 0) {
+        return "Radius must be greater than 0";
+    }
+        return null;
+};
+
+module.exports = {validateLocation,validateNearbyQuery};
