@@ -167,4 +167,4 @@ const getDistanceBetweenLocations = async (req, res) => {
     }
 };
 
-module.exports = {getNearbyLocationWithDistance,getDistanceBetweenLocations}
+module.exports = {getNearbyLocationWithDistance,getDistanceBetweenLocations};
