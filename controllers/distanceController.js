@@ -7,6 +7,14 @@ const {validateLocation,validateNearbyQuery} = require("../validators/locationVa
 const getNearbyLocationWithDistance = async(req,res)=>{
     try{
 
+        const validationError = validateNearbyQuery(req.query);
+
+        if(validationError){
+            return res.status(400).json({
+                message:validationError
+            });
+        }
+
         const lat = Number(req.query.lat)
         const lng = Number(req.query.lng)
         const radias = Number(req.query.radius)
@@ -33,7 +41,24 @@ const getNearbyLocationWithDistance = async(req,res)=>{
             `,
             [lat,lng,radius]
         );
-        res.json(result.rows);
+
+        const locations = result.rows.map((row) => {
+
+            return {
+                id: row.id,
+                name: row.name,
+                distance_meters: Number(row.distance_meters),
+                distance_km: Number(
+                    (row.distance_meters / 1000).toFixed(2) //kilometer
+                )
+            };
+
+        });
+
+        res.json({
+            count:location.length,
+            locations:locations
+        });
 
     }catch(error){
         return res.send(500).json({
