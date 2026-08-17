@@ -2,7 +2,10 @@ const express = require("express");
 const cors = require("cors");
 const pool = require("./db/db");
 
-const locationRoutes = require("./routes/locationRoutes")
+const locationRoutes = require("./routes/locationRoutes");
+
+// add distance route
+const distanceRoutes = require("./routes/distanceRoute");
 
 const app = express();
 
@@ -35,6 +38,8 @@ app.get("/",(req,res)=>{
 // get all locations
 app.use("/api",locationRoutes);
 
+// get distance 
+app.use("/api/distance",distanceRoutes);
 
 app.listen(PORT,()=>{
   console.log(`server is running on port ${PORT}`)

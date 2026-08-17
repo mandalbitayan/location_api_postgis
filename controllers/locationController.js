@@ -296,4 +296,4 @@ const deleteLocation = async(req,res)=>{
 
 
 
-module.exports = {getLocations,getLocationById,createLocation,updateLocation,deleteLocation};
+module.exports = {getLocations,getLocationById,createLocation,updateLocation,deleteLocation,getNearByLocation};

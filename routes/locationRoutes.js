@@ -4,7 +4,7 @@ const router = express.Router();
 
 const validateLocation = require("../validators/locationValidator");
 
-const {getLocations,getLocationById,createLocation,updateLocation,deleteLocation} = require("../controllers/locationController");
+const {getLocations,getLocationById,createLocation,updateLocation,deleteLocation,getNearByLocation} = require("../controllers/locationController");
 
 
 // get all locations route
@@ -20,6 +20,8 @@ router.post("/createLocation",createLocation);
 router.put("/location/:id",updateLocation);
 
 router.delete("/location/:id",deleteLocation);
+
+router.get("/locations/nearby",getNearByLocation);
 
 
 module.exports = router;
