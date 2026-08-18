@@ -1,5 +1,5 @@
 const pool = require("../db/db");
-const {validateLocation,validateNearbyQuery} = require("../validators/locationValidator");
+const {validateLocation,validateNearbyQuery,validateBBoxQuery, validateCoordinateQuery} = require("../validators/locationValidator");
 
 // // get get locations
 // const getLocations = async(req,res)=>{
@@ -129,6 +129,250 @@ const getNearByLocation = async(req,res)=>{
         })
     }
 }
+
+
+
+// bounding box controllers
+
+const getLocationByBBox = async(req,res)=>{
+
+    try{
+        const validationError = validateBBoxQuery(req.query);
+
+        if(validationError){
+            return res.status(400).json({
+                message:validationError
+            });
+        }
+
+        const minlng = Number(req.query.minlng);
+        const minlat = Number(req.query.minlat);
+        const maxlng = Number(req.query.maxlng);
+        const maxlat = Number(req.query.maxlat);
+
+        const result = await pool.query(
+            `select
+                id,
+                name,
+                st_asgeojson(geom) as geometry
+            from locations
+
+            where geom && st_makeenvelop(
+                $1,
+                $2,
+                $3,
+                $4,
+                4326
+            )
+                order by id
+            `,
+            [minlng,minlat,maxlng,maxlat]
+        );
+
+        const features = result.rows.map((row)=>{
+
+            return {
+                type:"Feature",
+
+                properties:{
+                    id:row.id,
+                    name:row.name
+                },
+
+                geometry:JSON.parse(row.geometry)
+            };
+        });
+
+        res.json({
+            type:"FeatureCollection",
+            features:features
+        });
+
+
+    }catch(error){
+        console.error(error);
+
+        res.status(500).json({
+            message:"Failed to fetch locations by bounding box"
+        })
+    }
+};
+
+
+// location within another location 
+
+const getLocationDistrict = async(req,res)=>{
+    try{
+
+        const validationError = validateCoordinateQuery(req.query);
+
+        if(validationError){
+            return res.status(400).json({
+                message:validationError
+            })
+        };
+
+        const lat = Number(req.query.lat);
+        const lng = Number(req.query.lng);
+
+        const result = await pool.query(
+            `
+            select
+                id,
+                name,
+
+                from districts as d
+
+                where st_within(
+                    st_setsrid(
+                    st_makepoint($1,$2),
+                    4326),
+                    d.geom
+                    )
+                    limit 1
+            `,
+            [lng,lat]
+        );
+
+        if(result.rows.length === 0){
+            return res.status(404).json({
+                message:"No district found"
+            });
+        }
+
+        res.json({
+            district:result.rows[0]
+        });
+
+    }catch(error){
+        console.error(error)
+        res.status(500).json({
+            message:"Failed to find district"
+        })
+    }
+}
+
+
+// get location content district st_contains()
+
+const getLocationsInsideDistrict = async(req,res)=>{
+
+    try{
+
+        const districtId = Number(req.params.id);
+
+        if(Number.isNaN(districtId) || districtId <= 0){
+            return res.status(400).json({
+                message:"Invalid district id"
+            });
+        }
+
+        const result = await pool.query(
+            `
+            select
+                id,
+                name,
+                as_geojson(l.geom) as geometry
+            from locations as l
+
+            join district as d
+            on st_contains(
+                d.geom,
+                l.geom
+            )
+                where d.id = $1
+            `,
+            [districtId]
+        );
+
+        const features = result.rows.map((row)=>{
+
+            return{
+                type:"Feature",
+
+                properties:{
+                    id : row.id,
+                    name:row.name
+                },
+
+                geometry:JSON.parse(row.geometry)
+            };
+        });
+
+        res.json({
+            type:"FeatureCollection",
+            features
+        });
+
+
+    }catch(error){
+        console.error(error)
+        res.status(500).json({
+            message:"District not found"
+        });
+    };
+};
+
+
+
+// intersect with polygon or not st_intersects()
+
+const getLocationsInsideDistrict = async(req,res)=>{
+
+    try{
+
+        const districtId = Number(req.params.id);
+
+        if(Number.isNaN(districtId) || districtId <= 0){
+            return res.status(400).json({
+                message:"Invalid district Id"
+            });
+        }
+
+        const result = await pool.query(
+            `
+            select
+                l.id,
+                l.name,
+                st_asgeojson(l.geom) as geometry
+
+            from locations as l
+            join districts as d
+            on st_contains(
+                d.geom,
+                l.geom
+            )
+                where d.id = $1
+            `,
+            [districtId]
+        );
+
+        const features = result.rows.map((row)=>{
+            return{
+                type:"Feature",
+
+                properties:{
+                    id:row.id,
+                    name:row.name
+                },
+
+                geometry:JSON.parse(row.geometry);
+            };
+            
+        });
+
+        res.json({
+            type:"FeatureCollection",
+            features
+        });
+
+    }catch(error){
+        console.error(error);
+        res.status(500).json({
+            message:"Failed to find locations"
+        })
+    }
+};
 
 
 
@@ -296,4 +540,13 @@ const deleteLocation = async(req,res)=>{
 
 
 
-module.exports = {getLocations,getLocationById,createLocation,updateLocation,deleteLocation,getNearByLocation};
+module.exports = {getLocations,
+    getLocationById,
+    createLocation,
+    updateLocation,
+    deleteLocation,
+    getNearByLocation,
+    getLocationByBBox,
+    getLocationDistrict,
+    getLocationsInsideDistrict,
+    getLocationsInsideDistrict};
