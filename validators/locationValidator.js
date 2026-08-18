@@ -66,4 +66,30 @@ function validateNearbyQuery(data) {
         return null;
 };
 
-module.exports = {validateLocation,validateNearbyQuery};
+
+// only for limit data query
+function validateCoordinateQuery(data){
+
+    const lat = Number(data.lat);
+    const lng = Number(data.lng);
+    
+    if(
+        Number.isNaN(lat) ||
+        Number.isNaN(lng)
+    ){
+        return res.status(400).json({
+            message:"Location must be in number"
+        })
+    }
+
+    if(lat <-90 || lat >90){
+        return "Latitude must be between -90 to 90"
+    };
+    if(lng <-180 || lng >180){
+        return "Longitude must be between -180 to 180"
+    }
+    return null
+};
+
+
+module.exports = {validateLocation,validateNearbyQuery,validateCoordinateQuery};

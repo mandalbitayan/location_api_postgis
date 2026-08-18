@@ -1,6 +1,6 @@
 const pool = require("../db/db");
 
-const {validateLocation,validateNearbyQuery} = require("../validators/locationValidator");
+const {validateLocation,validateNearbyQuery,validateCoordinateQuery} = require("../validators/locationValidator");
 
 // distance location 
 
@@ -39,7 +39,7 @@ const getNearbyLocationWithDistance = async(req,res)=>{
             )
             order by distance_meters asc
             `,
-            [lat,lng,radius]
+            [lng,lat,radius]
         );
 
         const locations = result.rows.map((row) => {
@@ -167,4 +167,73 @@ const getDistanceBetweenLocations = async (req, res) => {
     }
 };
 
-module.exports = {getNearbyLocationWithDistance,getDistanceBetweenLocations};
+
+// getNearestLocation
+
+const getNearestLocation = async(req,res)=>{
+    try{
+
+        const validationError = validateCoordinateQuery(req.query);
+
+        if(validationError){
+            return res.status(400).json({
+                message:validationError
+            });
+        };
+
+        const lat = Number(req.query.lat);
+        const lng = Number(req.query.lng);
+
+        const result = await pool.query(
+            `select
+            id,
+            name,
+            st_distance(
+            geom::geography,
+            st_setsrid(
+                st_makepoint($1,$2),
+                4326
+                )::geography
+            )as distance_meters
+            from locations
+            order by distance_metsrs asc
+            limit 1
+            `,
+            [lng,lat]
+        );
+
+        if(result.rows.length === 0){
+            return res.status(404).json({
+                message:"Location not found"
+            });
+        }
+
+
+        const row = result.rows[0];
+
+        const distanceMeters = Number(row.distance_meters);
+
+        res.json({
+            location:{
+                id:row.id,
+                name:row.name
+            },
+
+            distance_meters: distanceMeters,
+
+            distance_km: Number(
+                (distanceMeters / 1000).toFixed(2)
+            )
+        });
+
+
+    }catch(error){
+        console.error(error);
+        res.status(500).json({
+            success:false,
+            message:"Failed to find nearby locations"
+        })
+    }
+}
+
+module.exports = {getNearbyLocationWithDistance,getDistanceBetweenLocations,getNearestLocation};
