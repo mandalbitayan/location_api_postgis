@@ -315,68 +315,6 @@ const getLocationsInsideDistrict = async(req,res)=>{
 
 
 
-// intersect with polygon or not st_intersects()
-
-const getLocationsInsideDistrict = async(req,res)=>{
-
-    try{
-
-        const districtId = Number(req.params.id);
-
-        if(Number.isNaN(districtId) || districtId <= 0){
-            return res.status(400).json({
-                message:"Invalid district Id"
-            });
-        }
-
-        const result = await pool.query(
-            `
-            select
-                l.id,
-                l.name,
-                st_asgeojson(l.geom) as geometry
-
-            from locations as l
-            join districts as d
-            on st_contains(
-                d.geom,
-                l.geom
-            )
-                where d.id = $1
-            `,
-            [districtId]
-        );
-
-        const features = result.rows.map((row)=>{
-            return{
-                type:"Feature",
-
-                properties:{
-                    id:row.id,
-                    name:row.name
-                },
-
-                geometry:JSON.parse(row.geometry);
-            };
-            
-        });
-
-        res.json({
-            type:"FeatureCollection",
-            features
-        });
-
-    }catch(error){
-        console.error(error);
-        res.status(500).json({
-            message:"Failed to find locations"
-        })
-    }
-};
-
-
-
-
 // get location by id
 const getLocationById = async(req,res)=>{
     try{
@@ -548,5 +486,4 @@ module.exports = {getLocations,
     getNearByLocation,
     getLocationByBBox,
     getLocationDistrict,
-    getLocationsInsideDistrict,
     getLocationsInsideDistrict};
